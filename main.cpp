@@ -12,9 +12,15 @@
 #include <typeinfo>
 
 #include "logger.h"
+#include "arguments.h"
 
-int main() {
+int main(int argc, char* argv[]) {
     logger::logger.setLogLevel(logger::debug);
+
+    ArgumentParser& argpars = ArgumentParser::getInstance(argc, argv, "test app", {12, 13, 4, "a0e67de04e79"});
+    argpars.addArgument({});
+
+    (void)(argpars);
 
     return 0;
 }

@@ -51,7 +51,7 @@ SOURCES_C :=
 
 SOURCES_CPP := 
 SOURCES_CPP += libs/logger/logger.cpp
-# SOURCES_CPP += scheduler.cppm
+SOURCES_CPP += arguments.cpp
 SOURCES_CPP += main.cpp
 
 OBJS := 
@@ -128,7 +128,7 @@ build: clean $(OBJS)
 
 run: build
 	@echo 'Exe file: $(TARGET_NAME)'
-	$(Q)./$(TARGET_NAME)
+	$(Q)./$(TARGET_NAME) -a 1 -b 2 -c test_name
 
 prof: build
 	@echo "Prof: $(TARGET_NAME)"
