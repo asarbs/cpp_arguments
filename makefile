@@ -58,12 +58,6 @@ OBJS :=
 OBJS += $(SOURCES_C:%.c=%.o)
 OBJS += $(SOURCES_CPP:%.cpp=%.o)
 
-SOURCES_CPPM += scheduler.cppm
-
-PCM_CPPM += $(SOURCES_CPPM:%.cppm=%.pcm)
-
-OBJS_CPPM += $(PCM_CPPM:%.pcm=%.o)
-
 TEST_SOURCES_C :=
 TEST_SOURCES_CPP := test_main.cpp
 TEST_SOURCES_CPP += libs/logger/logger.cpp
@@ -128,9 +122,9 @@ test: $(TEST_OBJS) gtest-all.o gtest_main.o
 	$(Q)$(GCC) $(CPPFLAGS_PROD) $(INCLUDES_PARAMS) $^ -o test_exe 
 	./test_exe --gtest_catch_exceptions=0
 
-build: clean $(PCM_CPPM) $(OBJS_CPPM) $(OBJS) 
+build: clean $(OBJS)
 	@echo 'Build executable file: $(TARGET_NAME)'
-	$(Q)$(GCC) $(CPPFLAGS_PROD) $(OBJS) $(OBJS_CPPM) -o $(TARGET_NAME) 
+	$(Q)$(GCC) $(CPPFLAGS_PROD) $(OBJS) -o $(TARGET_NAME)
 
 run: build
 	@echo 'Exe file: $(TARGET_NAME)'
