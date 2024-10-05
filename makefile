@@ -122,13 +122,13 @@ test: $(TEST_OBJS) gtest-all.o gtest_main.o
 	$(Q)$(GCC) $(CPPFLAGS_PROD) $(INCLUDES_PARAMS) $^ -o test_exe 
 	./test_exe --gtest_catch_exceptions=0
 
-build: clean $(OBJS)
+build: clean format $(OBJS)
 	@echo 'Build executable file: $(TARGET_NAME)'
 	$(Q)$(GCC) $(CPPFLAGS_PROD) $(OBJS) -o $(TARGET_NAME)
 
 run: build
 	@echo 'Exe file: $(TARGET_NAME)'
-	$(Q)./$(TARGET_NAME) -a 1 -b 2 -c test_name
+	$(Q)./$(TARGET_NAME) -a 1 -e -b 2 -c test_name -d
 
 prof: build
 	@echo "Prof: $(TARGET_NAME)"
