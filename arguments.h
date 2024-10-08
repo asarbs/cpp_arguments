@@ -56,6 +56,7 @@ class Argument {
     Argument(Argument&& other);
     Argument& operator=(const Argument& other) noexcept;
     Argument& operator=(Argument&& other) noexcept;
+    bool      operator==(const char* other) const;
 
     uint32_t getParamValue() const {
         return 42;
@@ -78,25 +79,22 @@ logger::Logger& operator<<(logger::Logger& logger, const Argument::Type& t);
 
 class ArgumentParser {
    public:
-    static ArgumentParser& getInstance(const int argc, char* argv[], const std::string& prog_name, const VersionInfo& ver);
+    static ArgumentParser& getInstance(const std::string& prog_name, const VersionInfo& ver);
     void                   addArgument(Argument arg);
+    void                   parse(const int argc, char* argv[]);
 
    protected:
    private:
-    ArgumentParser(const int argc, char* argv[], const std::string& prog_name,
-                   const VersionInfo& version);                 // Private constructor - prevents creating objects outside the class
-    ArgumentParser(const ArgumentParser&)            = delete;  // Remove the ability to copy and assign
-    ArgumentParser(ArgumentParser&&)                 = delete;  // Remove the ability to move
-    ArgumentParser& operator=(const ArgumentParser&) = delete;  // Remove the ability to copy and assign
-    ArgumentParser& operator=(ArgumentParser&&)      = delete;  // Remove the ability to move
+    ArgumentParser(const std::string& prog_name, const VersionInfo& version);  // Private constructor - prevents creating objects outside the class
+    ArgumentParser(const ArgumentParser&)            = delete;                 // Remove the ability to copy and assign
+    ArgumentParser(ArgumentParser&&)                 = delete;                 // Remove the ability to move
+    ArgumentParser& operator=(const ArgumentParser&) = delete;                 // Remove the ability to copy and assign
+    ArgumentParser& operator=(ArgumentParser&&)      = delete;                 // Remove the ability to move
 
-    std::string                          __prog_name;
-    VersionInfo                          __version;
-    std::vector<std::pair<char*, char*>> __mainArgs;
-    const int                            __argc;
-    char**                               __argv;
+    std::string __prog_name;
+    VersionInfo __version;
 
-    std::map<std::string, Argument> __arguments;
+    std::vector<Argument> __arguments;
 };
 
 #endif  // ARGUMENTS_H_

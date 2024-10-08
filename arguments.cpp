@@ -113,6 +113,41 @@ void Argument::ArgumentValue::setValue(char* value_str) {
     __value_str = value_str;
 }
 
+void Argument::setValue(char* value_str) {
+    __value.setValue(value_str);
+}
+
+Argument::Argument() : __name(""), __flag(""), __help(""), __value(Argument::Type::NONE, NULL) {
+}
+
+Argument::Argument(std::string name, std::string flag, std::string help, Type type, char* value)
+    : __name(name), __flag(flag), __help(help), __value(type, value) {
+}
+
+Argument::Argument(const Argument& other) : __name(other.__name), __flag(other.__flag), __help(other.__help), __value(other.__value){};
+
+Argument::Argument(Argument&& other) : __name(other.__name), __flag(other.__flag), __help(other.__help), __value(other.__value){};
+
+bool Argument::operator==(const char* other) const {
+    return __name == other || __flag == other;
+}
+
+Argument& Argument::operator=(const Argument& other) noexcept {
+    __name  = other.__name;
+    __flag  = other.__flag;
+    __help  = other.__help;
+    __value = other.__value;
+    return *this;
+};
+
+Argument& Argument::operator=(Argument&& other) noexcept {
+    __name  = other.__name;
+    __flag  = other.__flag;
+    __help  = other.__help;
+    __value = other.__value;
+    return *this;
+};
+
 char* Argument::ArgumentValue::getValue() const {
     return __value_str;
 }
@@ -132,77 +167,44 @@ std::string Argument::getValue() const {
     return std::string(__value.getValue());
 }
 
-void Argument::setValue(char* value_str) {
-    __value.setValue(value_str);
+ArgumentParser::ArgumentParser(const std::string& prog_name, const VersionInfo& version) : __prog_name(prog_name), __version(version) {
 }
 
-Argument::Argument() : __name(""), __flag(""), __help(""), __value(Argument::Type::NONE, NULL) {
-}
-
-Argument::Argument(std::string name, std::string flag, std::string help, Type type, char* value)
-    : __name(name), __flag(flag), __help(help), __value(type, value) {
-}
-
-Argument::Argument(const Argument& other) : __name(other.__name), __flag(other.__flag), __help(other.__help), __value(other.__value){};
-
-Argument::Argument(Argument&& other) : __name(other.__name), __flag(other.__flag), __help(other.__help), __value(other.__value){};
-
-Argument& Argument::operator=(const Argument& other) noexcept {
-    __name  = other.__name;
-    __flag  = other.__flag;
-    __help  = other.__help;
-    __value = other.__value;
-    return *this;
-};
-
-Argument& Argument::operator=(Argument&& other) noexcept {
-    __name  = other.__name;
-    __flag  = other.__flag;
-    __help  = other.__help;
-    __value = other.__value;
-    return *this;
-};
-
-ArgumentParser::ArgumentParser(const int argc, char** argv, const std::string& prog_name, const VersionInfo& version)
-    : __prog_name(prog_name), __version(version), __argc(argc) {
-    __argv = argv;
-
-    const char constant = '-';
-
-    for (uint32_t argIndex = 1; argIndex < __argc; argIndex++) {
-        if (__argv[argIndex][0] == constant) {
-            __mainArgs.push_back({__argv[argIndex], NULL});
-
-        } else {
-            __mainArgs.back().second = __argv[argIndex];
-        }
-    }
-
-    for (const auto& arg : __mainArgs) {
-        char* key   = arg.first;
-        char* value = arg.second;
-        if (value == NULL) {
-            logger::logger << logger::debug << "args:" << key << " -> NULL" << logger::endl;
-        } else {
-            logger::logger << logger::debug << "args:" << key << " -> " << value << logger::endl;
-        }
-    }
-}
-
-ArgumentParser& ArgumentParser::getInstance(const int argc, char** argv, const std::string& prog_name, const VersionInfo& ver) {
-    static ArgumentParser instance(argc, argv, prog_name, ver);
+ArgumentParser& ArgumentParser::getInstance(const std::string& prog_name, const VersionInfo& ver) {
+    static ArgumentParser instance(prog_name, ver);
     return instance;
 }
 
-void ArgumentParser::addArgument(Argument arg) {
-    for (const auto& argMain : __mainArgs) {
-        std::string key(argMain.first);
-        if (arg.getName().compare(key) == 0 || arg.getFlag().compare(key) == 0) {
-            arg.setValue(argMain.second);
+void ArgumentParser::parse(const int argc, char* argv[]) {
+    std::vector<std::pair<char*, char*>> mainArgs;
+    const char                           constant = '-';
+
+    for (uint32_t argIndex = 1; argIndex < argc; argIndex++) {
+        if (argv[argIndex][0] == constant) {
+            mainArgs.push_back({argv[argIndex], NULL});
+
+        } else {
+            mainArgs.back().second = argv[argIndex];
         }
     }
+
+    for (const auto& a : mainArgs) {
+        for (auto& arg : __arguments) {
+            if (arg == a.first) {
+                arg.setValue(a.second);
+                logger::logger << logger::debug << "update argument value:" <<            //
+                    logger::setw(5) << a.first << "=" <<                                  //
+                    logger::setw(15) << (a.second == NULL ? "NULL" : a.second) <<         //
+                    " => " <<                                                             //
+                    logger::setw(15) << arg.getName() << "[" << arg.getFlag() << "]=" <<  //
+                    logger::setw(15) << arg.getValue() << logger::endl;
+            }
+        }
+    }
+}
+
+void ArgumentParser::addArgument(Argument arg) {
     logger::logger << logger::debug << "Add argument \"" << arg.getName() << "[" << arg.getFlag() << "] -> " << arg.getValue()
                    << "\" to Argument Parser." << logger::endl;
-
-    __arguments[arg.getName()] = std::move(arg);
+    __arguments.push_back(std::move(arg));
 }
