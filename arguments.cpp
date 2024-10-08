@@ -132,6 +132,10 @@ bool Argument::operator==(const char* other) const {
     return __name == other || __flag == other;
 }
 
+bool Argument::operator==(std::string other) const {
+    return __name == other || __flag == other;
+}
+
 Argument& Argument::operator=(const Argument& other) noexcept {
     __name  = other.__name;
     __flag  = other.__flag;
@@ -193,7 +197,7 @@ void ArgumentParser::parse(const int argc, char* argv[]) {
             if (arg == a.first) {
                 arg.setValue(a.second);
                 logger::logger << logger::debug << "update argument value:" <<            //
-                    logger::setw(5) << a.first << "=" <<                                  //
+                    logger::setw(15) << a.first << "=" <<                                 //
                     logger::setw(15) << (a.second == NULL ? "NULL" : a.second) <<         //
                     " => " <<                                                             //
                     logger::setw(15) << arg.getName() << "[" << arg.getFlag() << "]=" <<  //
@@ -203,8 +207,30 @@ void ArgumentParser::parse(const int argc, char* argv[]) {
     }
 }
 
-void ArgumentParser::addArgument(Argument arg) {
+void ArgumentParser::addArgument(Argument&& arg) {
     logger::logger << logger::debug << "Add argument \"" << arg.getName() << "[" << arg.getFlag() << "] -> " << arg.getValue()
                    << "\" to Argument Parser." << logger::endl;
     __arguments.push_back(std::move(arg));
+}
+
+std::optional<uint32_t> ArgumentParser::getArgumentUint32(std::string argName) {
+    for (auto& arg : __arguments) {
+        if (arg == argName) {
+            std::stringstream ss(arg.getValue());
+            uint32_t          val;
+            if (ss >> val) {
+                return std::optional<uint32_t>(val);
+            }
+        }
+    }
+    return std::optional<uint32_t>();
+}
+
+std::optional<std::string> ArgumentParser::getArgumentStr(std::string argName) {
+    for (auto& arg : __arguments) {
+        if (arg == argName) {
+            return arg.getValue();
+        }
+    }
+    return std::optional<std::string>();
 }

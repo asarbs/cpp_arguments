@@ -25,6 +25,7 @@ TEST_DIR= ${SOURCES_DIR}/test_src
 FIND_CMD = find ${SOURCES_DIR} \( -iname "*.h" -o -iname "*.cpp" -o -iname "*.cppm" \) -and ! -path "*/libs/*"
 
 TARGET_NAME := app
+TARGET_ARGS := -a 111 -e --test_b 2 -c test_name -d
 prof: TARGET_NAME := prof_app
 
 GTEST_DIR=./libs/googletest/googletest
@@ -60,6 +61,7 @@ OBJS += $(SOURCES_CPP:%.cpp=%.o)
 
 TEST_SOURCES_C :=
 TEST_SOURCES_CPP := test_main.cpp
+TEST_SOURCES_CPP += arguments.cpp
 TEST_SOURCES_CPP += libs/logger/logger.cpp
 
 TEST_OBJS :=
@@ -127,8 +129,8 @@ build: clean format $(OBJS)
 	$(Q)$(GCC) $(CPPFLAGS_PROD) $(OBJS) -o $(TARGET_NAME)
 
 run: build
-	@echo 'Exe file: $(TARGET_NAME)'
-	$(Q)./$(TARGET_NAME) -a 1 -e -b 2 -c test_name -d
+	@echo 'Exe file: $(TARGET_NAME) $(TARGET_ARGS)'
+	$(Q)./$(TARGET_NAME) $(TARGET_ARGS)
 
 prof: build
 	@echo "Prof: $(TARGET_NAME)"

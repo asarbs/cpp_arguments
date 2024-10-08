@@ -42,7 +42,7 @@ class Argument {
         friend std::ostream&   operator<<(std::ostream& o, const Argument::ArgumentValue& v);
         friend logger::Logger& operator<<(logger::Logger& o, const Argument::ArgumentValue& v);
 
-        void  setValue(char* value_str);
+        void  setValue(char* valueStr);
         char* getValue() const;
 
        protected:
@@ -57,6 +57,7 @@ class Argument {
     Argument& operator=(const Argument& other) noexcept;
     Argument& operator=(Argument&& other) noexcept;
     bool      operator==(const char* other) const;
+    bool      operator==(std::string other) const;
 
     uint32_t getParamValue() const {
         return 42;
@@ -64,7 +65,7 @@ class Argument {
     std::string getName() const;
     std::string getFlag() const;
     std::string getValue() const;
-    void        setValue(char* value_str);
+    void        setValue(char* valueStr);
 
    protected:
    private:
@@ -79,17 +80,19 @@ logger::Logger& operator<<(logger::Logger& logger, const Argument::Type& t);
 
 class ArgumentParser {
    public:
-    static ArgumentParser& getInstance(const std::string& prog_name, const VersionInfo& ver);
-    void                   addArgument(Argument arg);
-    void                   parse(const int argc, char* argv[]);
+    static ArgumentParser&     getInstance(const std::string& progName, const VersionInfo& ver);
+    void                       addArgument(Argument&& arg);
+    std::optional<uint32_t>    getArgumentUint32(std::string argName);
+    std::optional<std::string> getArgumentStr(std::string argName);
+    void                       parse(const int argc, char* argv[]);
 
    protected:
    private:
-    ArgumentParser(const std::string& prog_name, const VersionInfo& version);  // Private constructor - prevents creating objects outside the class
-    ArgumentParser(const ArgumentParser&)            = delete;                 // Remove the ability to copy and assign
-    ArgumentParser(ArgumentParser&&)                 = delete;                 // Remove the ability to move
-    ArgumentParser& operator=(const ArgumentParser&) = delete;                 // Remove the ability to copy and assign
-    ArgumentParser& operator=(ArgumentParser&&)      = delete;                 // Remove the ability to move
+    ArgumentParser(const std::string& progName, const VersionInfo& version);  // Private constructor - prevents creating objects outside the class
+    ArgumentParser(const ArgumentParser&)            = delete;                // Remove the ability to copy and assign
+    ArgumentParser(ArgumentParser&&)                 = delete;                // Remove the ability to move
+    ArgumentParser& operator=(const ArgumentParser&) = delete;                // Remove the ability to copy and assign
+    ArgumentParser& operator=(ArgumentParser&&)      = delete;                // Remove the ability to move
 
     std::string __prog_name;
     VersionInfo __version;

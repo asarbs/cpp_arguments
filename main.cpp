@@ -1,18 +1,19 @@
-#include <iostream>
-#include <bitset>
-#include <memory>
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
-#include <chrono>
-#include <thread>
 #include <unistd.h>
+
+#include <bitset>
+#include <chrono>
 #include <iomanip>
+#include <iostream>
+#include <memory>
 #include <mutex>
+#include <thread>
 #include <typeinfo>
 
-#include "logger.h"
 #include "arguments.h"
+#include "logger.h"
 
 int main(int argc, char* argv[]) {
     logger::logger.setLogLevel(logger::debug);
@@ -26,7 +27,13 @@ int main(int argc, char* argv[]) {
     argpars.addArgument({"--test_e", "-e", "help str2", Argument::Type::uint8, val});
     argpars.parse(argc, argv);
 
-    (void)(argpars);
+    logger::logger << logger::info << "-a = " << argpars.getArgumentUint32("-a").has_value() << "," << *argpars.getArgumentUint32("-a")
+                   << logger::endl;
+    logger::logger << logger::info << "-b = " << argpars.getArgumentUint32("-b").has_value() << "," << *argpars.getArgumentUint32("-b")
+                   << logger::endl;
+    logger::logger << logger::info << "-c = " << argpars.getArgumentStr("-c").has_value() << "," << *argpars.getArgumentStr("-c") << logger::endl;
+    logger::logger << logger::info << "-d = " << argpars.getArgumentUint32("-d").has_value() << "," << *argpars.getArgumentStr("-d") << logger::endl;
+    logger::logger << logger::info << "-e = " << argpars.getArgumentUint32("-e").has_value() << "," << *argpars.getArgumentStr("-e") << logger::endl;
 
     return 0;
 }
