@@ -42,13 +42,13 @@ class Argument {
         friend std::ostream&   operator<<(std::ostream& o, const Argument::ArgumentValue& v);
         friend logger::Logger& operator<<(logger::Logger& o, const Argument::ArgumentValue& v);
 
-        void  setValue(char* valueStr);
-        char* getValue() const;
+        void        setValue(char* valueStr);
+        std::string getValue() const;
 
        protected:
        private:
-        Type  __type;
-        char* __value_str;
+        Type        __type;
+        std::string __value_str;
     };
     Argument();
     Argument(std::string name, std::string flag, std::string help, Type type, char* value);

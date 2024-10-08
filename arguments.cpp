@@ -61,40 +61,30 @@ logger::Logger& operator<<(logger::Logger& logger, const Argument::Type& t) {
     }
 }
 
-Argument::ArgumentValue::ArgumentValue(Type type, char* value) : __type(type), __value_str(value){};
-
-Argument::ArgumentValue::ArgumentValue(const Argument::ArgumentValue& other) : __type(other.__type), __value_str(nullptr) {
-    if (other.__value_str) {
-        __value_str = new char[std::strlen(other.__value_str) + 1];
-        std::strcpy(__value_str, other.__value_str);
+Argument::ArgumentValue::ArgumentValue(Type type, char* value) : __type(type) {
+    if (value == NULL) {
+        __value_str = "";
+    } else {
+        __value_str = value;
     }
 };
 
-Argument::ArgumentValue::ArgumentValue(Argument::ArgumentValue&& other) noexcept : __type(other.__type), __value_str(other.__value_str) {
-    other.__value_str = NULL;
-};
+Argument::ArgumentValue::ArgumentValue(const Argument::ArgumentValue& other) : __type(other.__type), __value_str(other.__value_str){};
+
+Argument::ArgumentValue::ArgumentValue(Argument::ArgumentValue&& other) noexcept : __type(other.__type), __value_str(other.__value_str){};
 
 Argument::ArgumentValue& Argument::ArgumentValue::operator=(const Argument::ArgumentValue& other) {
     if (this != &other) {
-        delete __value_str;
-        __type = other.__type;
-        if (other.__value_str != NULL) {
-            size_t val_str_size = std::strlen(other.__value_str) + 1;
-            __value_str         = new char[val_str_size];
-            std::strcpy(__value_str, other.__value_str);
-        } else {
-            __value_str = NULL;
-        }
+        __type      = other.__type;
+        __value_str = other.__value_str;
     }
     return *this;
 };
 
 Argument::ArgumentValue& Argument::ArgumentValue::operator=(Argument::ArgumentValue&& other) noexcept {
     if (this != &other) {
-        delete __value_str;
-        __type            = other.__type;
-        __value_str       = other.__value_str;
-        other.__value_str = NULL;
+        __type      = other.__type;
+        __value_str = other.__value_str;
     }
     return *this;
 }
@@ -110,7 +100,11 @@ logger::Logger& operator<<(logger::Logger& logger, const Argument::ArgumentValue
 }
 
 void Argument::ArgumentValue::setValue(char* value_str) {
-    __value_str = value_str;
+    if (value_str == NULL) {
+        __value_str = std::string("");
+    } else {
+        __value_str = value_str;
+    }
 }
 
 void Argument::setValue(char* value_str) {
@@ -152,7 +146,7 @@ Argument& Argument::operator=(Argument&& other) noexcept {
     return *this;
 };
 
-char* Argument::ArgumentValue::getValue() const {
+std::string Argument::ArgumentValue::getValue() const {
     return __value_str;
 }
 
@@ -165,7 +159,7 @@ std::string Argument::getFlag() const {
 }
 
 std::string Argument::getValue() const {
-    if (__value.getValue() == NULL) {
+    if (__value.getValue().empty()) {
         return std::string("NULL");
     }
     return std::string(__value.getValue());
