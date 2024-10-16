@@ -38,7 +38,10 @@ int main(int argc, char* argv[]) {
 
     logger::logger << logger::info << "b_val = " << b_val << logger::endl;
     logger::logger << logger::info << "a[" << a_val << "] * b[" << b_val << "] = " << (a_val * b_val) << logger::endl;
-    logger::logger << logger::warning << "a[" << a_val << "] * b[" << b_val << "] = " << (a_val * b_val) << logger::endl;
+
+    std::string c_val = argpars.getArgument<std::string>("-c").value();
+
+    logger::logger << logger::warning << "c_val = " << c_val << logger::endl;
     logger::logger << logger::error << "a[" << a_val << "] * b[" << b_val << "] = " << (a_val * b_val) << logger::endl;
     logger::logger << logger::critical << "a[" << a_val << "] * b[" << b_val << "] = " << (a_val * b_val) << logger::endl;
 
