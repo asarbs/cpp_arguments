@@ -11,57 +11,7 @@ std::ostream& operator<<(std::ostream& o, const VersionInfo& v) {
     return o;
 }
 
-std::ostream& operator<<(std::ostream& o, const Argument::Type& t) {
-    switch (t) {
-        case Argument::Type::uint8:
-            return o << "uint8";
-        case Argument::Type::uint16:
-            return o << "uint16";
-        case Argument::Type::uint32:
-            return o << "uint32";
-        case Argument::Type::uint64:
-            return o << "uint64";
-        case Argument::Type::int8:
-            return o << "int8";
-        case Argument::Type::int16:
-            return o << "int16";
-        case Argument::Type::int32:
-            return o << "int32";
-        case Argument::Type::int64:
-            return o << "int64";
-        case Argument::Type::string:
-            return o << "string";
-        default:
-            return o << "Unknown";
-    }
-}
-
-logger::Logger& operator<<(logger::Logger& logger, const Argument::Type& t) {
-    switch (t) {
-        case Argument::Type::uint8:
-            return logger << "uint8";
-        case Argument::Type::uint16:
-            return logger << "uint16";
-        case Argument::Type::uint32:
-            return logger << "uint32";
-        case Argument::Type::uint64:
-            return logger << "uint64";
-        case Argument::Type::int8:
-            return logger << "int8";
-        case Argument::Type::int16:
-            return logger << "int16";
-        case Argument::Type::int32:
-            return logger << "int32";
-        case Argument::Type::int64:
-            return logger << "int64";
-        case Argument::Type::string:
-            return logger << "string";
-        default:
-            return logger << "Unknown";
-    }
-}
-
-Argument::ArgumentValue::ArgumentValue(Type type, char* value) : __type(type) {
+Argument::ArgumentValue::ArgumentValue(char* value) {
     if (value == NULL) {
         __value_str = "";
     } else {
@@ -69,13 +19,12 @@ Argument::ArgumentValue::ArgumentValue(Type type, char* value) : __type(type) {
     }
 };
 
-Argument::ArgumentValue::ArgumentValue(const Argument::ArgumentValue& other) : __type(other.__type), __value_str(other.__value_str){};
+Argument::ArgumentValue::ArgumentValue(const Argument::ArgumentValue& other) : __value_str(other.__value_str){};
 
-Argument::ArgumentValue::ArgumentValue(Argument::ArgumentValue&& other) noexcept : __type(other.__type), __value_str(other.__value_str){};
+Argument::ArgumentValue::ArgumentValue(Argument::ArgumentValue&& other) noexcept : __value_str(other.__value_str){};
 
 Argument::ArgumentValue& Argument::ArgumentValue::operator=(const Argument::ArgumentValue& other) {
     if (this != &other) {
-        __type      = other.__type;
         __value_str = other.__value_str;
     }
     return *this;
@@ -83,20 +32,9 @@ Argument::ArgumentValue& Argument::ArgumentValue::operator=(const Argument::Argu
 
 Argument::ArgumentValue& Argument::ArgumentValue::operator=(Argument::ArgumentValue&& other) noexcept {
     if (this != &other) {
-        __type      = other.__type;
         __value_str = other.__value_str;
     }
     return *this;
-}
-
-std::ostream& operator<<(std::ostream& o, const Argument::ArgumentValue& v) {
-    o << "[" << v.__type << ":" << v.__value_str << "]";
-    return o;
-}
-
-logger::Logger& operator<<(logger::Logger& logger, const Argument::ArgumentValue& v) {
-    logger << "[" << v.__type << ":" << v.__value_str << "]";
-    return logger;
 }
 
 void Argument::ArgumentValue::setValue(char* value_str) {
@@ -111,11 +49,10 @@ void Argument::setValue(char* value_str) {
     __value.setValue(value_str);
 }
 
-Argument::Argument() : __name(""), __flag(""), __help(""), __value(Argument::Type::NONE, NULL) {
+Argument::Argument() : __name(""), __flag(""), __help(""), __value(NULL) {
 }
 
-Argument::Argument(std::string name, std::string flag, std::string help, Type type, char* value)
-    : __name(name), __flag(flag), __help(help), __value(type, value) {
+Argument::Argument(std::string name, std::string flag, std::string help, char* value) : __name(name), __flag(flag), __help(help), __value(value) {
 }
 
 Argument::Argument(const Argument& other) : __name(other.__name), __flag(other.__flag), __help(other.__help), __value(other.__value){};
@@ -202,29 +139,6 @@ void ArgumentParser::parse(const int argc, char* argv[]) {
 }
 
 void ArgumentParser::addArgument(Argument&& arg) {
-    logger::logger << logger::debug << "Add argument \"" << arg.getName() << "[" << arg.getFlag() << "] -> " << arg.getValue()
-                   << "\" to Argument Parser." << logger::endl;
+    logger::logger << logger::debug << "Add argument \"" << arg.getName() << "[" << arg.getFlag() << "] -> " << arg.getValue() << "\" to Argument Parser." << logger::endl;
     __arguments.push_back(std::move(arg));
-}
-
-std::optional<uint32_t> ArgumentParser::getArgumentUint32(std::string argName) {
-    for (auto& arg : __arguments) {
-        if (arg == argName) {
-            std::stringstream ss(arg.getValue());
-            uint32_t          val;
-            if (ss >> val) {
-                return std::optional<uint32_t>(val);
-            }
-        }
-    }
-    return std::optional<uint32_t>();
-}
-
-std::optional<std::string> ArgumentParser::getArgumentStr(std::string argName) {
-    for (auto& arg : __arguments) {
-        if (arg == argName) {
-            return arg.getValue();
-        }
-    }
-    return std::optional<std::string>();
 }

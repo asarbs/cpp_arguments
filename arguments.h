@@ -18,22 +18,9 @@ std::ostream& operator<<(std::ostream& o, const VersionInfo& v);
 
 class Argument {
    public:
-    enum class Type {
-        NONE,
-        uint8,
-        uint16,
-        uint32,
-        uint64,
-        int8,
-        int16,
-        int32,
-        int64,
-        string,
-    };
-
     class ArgumentValue {
        public:
-        ArgumentValue(Type type, char* value);
+        ArgumentValue(char* value);
         ArgumentValue(const ArgumentValue& other);
         ArgumentValue(ArgumentValue&& other) noexcept;
         ArgumentValue& operator=(const ArgumentValue& other);
@@ -47,11 +34,10 @@ class Argument {
 
        protected:
        private:
-        Type        __type;
         std::string __value_str;
     };
     Argument();
-    Argument(std::string name, std::string flag, std::string help, Type type, char* value);
+    Argument(std::string name, std::string flag, std::string help, char* value);
     Argument(const Argument& other);
     Argument(Argument&& other);
     Argument& operator=(const Argument& other) noexcept;
@@ -75,16 +61,33 @@ class Argument {
     ArgumentValue __value;
 };
 
-std::ostream&   operator<<(std::ostream& o, const Argument::Type& t);
-logger::Logger& operator<<(logger::Logger& logger, const Argument::Type& t);
-
 class ArgumentParser {
    public:
-    static ArgumentParser&     getInstance(const std::string& progName, const VersionInfo& ver);
-    void                       addArgument(Argument&& arg);
-    std::optional<uint32_t>    getArgumentUint32(std::string argName);
-    std::optional<std::string> getArgumentStr(std::string argName);
-    void                       parse(const int argc, char* argv[]);
+    static ArgumentParser& getInstance(const std::string& progName, const VersionInfo& ver);
+    void                   addArgument(Argument&& arg);
+    template <typename T>
+    std::optional<T> getArgument(std::string argName) {
+        for (auto& arg : __arguments) {
+            if (arg == argName) {
+                std::stringstream ss(arg.getValue());
+                T                 val;
+                if (ss >> val) {
+                    return std::optional<T>(val);
+                }
+            }
+        }
+        return std::optional<T>();
+    }
+    std::optional<std::string> getArgument(std::string argName) {
+        for (auto& arg : __arguments) {
+            if (arg == argName) {
+                return arg.getValue();
+            }
+        }
+        return std::optional<std::string>();
+    }
+
+    void parse(const int argc, char* argv[]);
 
    protected:
    private:
