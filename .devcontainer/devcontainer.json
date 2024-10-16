@@ -28,7 +28,8 @@
 				"jerrygoyal.shortcut-menu-bar",
 				"donjayamanne.python-extension-pack",
 				"vscode-icons-team.vscode-icons",
-				"ms-vscode.makefile-tools"
+				"ms-vscode.makefile-tools",
+				"ms-vscode.cpptools-extension-pack"
 			]
 		}
 	},
