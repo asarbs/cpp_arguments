@@ -2,7 +2,7 @@
 
 #include "logger.h"
 
-std::ostream& operator<<(std::ostream& o, const VersionInfo& v) {
+std::ostream& operator<<(std::ostream& o, const Argument::VersionInfo& v) {
     o << v.major << "." << v.minor << "." << v.patch;
     if (v.build) {
         o << " (" << *v.build << ")";
@@ -11,7 +11,35 @@ std::ostream& operator<<(std::ostream& o, const VersionInfo& v) {
     return o;
 }
 
-Argument::ArgumentValue::ArgumentValue(char* value) {
+logger::Logger& Argument::operator<<(logger::Logger& o, const Action& a) {
+    switch (a) {
+        case Action::Store:
+            o << "Store";
+            break;
+        case Action::StoreTrue:
+            o << "StoreTrue";
+            break;
+        case Action::StoreFalse:
+            o << "StoreFalse";
+            break;
+        case Action::Help:
+            o << "Help";
+            break;
+        case Action::Version:
+            o << "Version";
+            break;
+        default:
+            o << "Unknown Action";
+    }
+    return o;
+}
+
+logger::Logger& Argument::operator<<(logger::Logger& o, const Argument::Argument::ArgumentValue& v) {
+    o << v.__value_str;
+    return o;
+}
+
+Argument::Argument::ArgumentValue::ArgumentValue(char* value) {
     if (value == NULL) {
         __value_str = "";
     } else {
@@ -19,100 +47,128 @@ Argument::ArgumentValue::ArgumentValue(char* value) {
     }
 };
 
-Argument::ArgumentValue::ArgumentValue(const Argument::ArgumentValue& other) : __value_str(other.__value_str){};
+Argument::Argument::ArgumentValue::ArgumentValue(const Argument::Argument::ArgumentValue& other)
+    : __value_str(other.__value_str){
+          // logger::logger << logger::debug << "ArgumentValue::ArgumentValue(const Argument::Argument::ArgumentValue& other)=" << __value_str << "=" << other.__value_str << ";"
+          // << logger::endl;
+      };
 
-Argument::ArgumentValue::ArgumentValue(Argument::ArgumentValue&& other) noexcept : __value_str(other.__value_str){};
+Argument::Argument::ArgumentValue::ArgumentValue(Argument::Argument::ArgumentValue&& other) noexcept
+    : __value_str(other.__value_str){
+          // logger::logger << logger::debug << "ArgumentValue::ArgumentValue(Argument::Argument::ArgumentValue&& other)=" << __value_str << ";" << logger::endl;
+      };
 
-Argument::ArgumentValue& Argument::ArgumentValue::operator=(const Argument::ArgumentValue& other) {
+Argument::Argument::ArgumentValue& Argument::Argument::ArgumentValue::operator=(const Argument::Argument::ArgumentValue& other) {
     if (this != &other) {
         __value_str = other.__value_str;
     }
     return *this;
 };
 
-Argument::ArgumentValue& Argument::ArgumentValue::operator=(Argument::ArgumentValue&& other) noexcept {
+Argument::Argument::ArgumentValue& Argument::Argument::ArgumentValue::operator=(Argument::Argument::ArgumentValue&& other) noexcept {
     if (this != &other) {
         __value_str = other.__value_str;
     }
     return *this;
 }
 
-void Argument::ArgumentValue::setValue(char* value_str) {
+void Argument::Argument::ArgumentValue::setValue(char* value_str) {
     if (value_str == NULL) {
         __value_str = std::string("");
     } else {
         __value_str = value_str;
     }
+    // logger::logger << logger::debug << "ArgumentValue::setValue=" << __value_str << ";" << logger::endl;
 }
 
-void Argument::setValue(char* value_str) {
+void Argument::Argument::setValue(char* value_str) {
     __value.setValue(value_str);
+    // logger::logger << logger::debug << this << "; Argument::setValue=" << __value << "=" << (value_str == NULL ? "NULL" : value_str) << ";" << logger::endl;
 }
 
-Argument::Argument() : __name(""), __flag(""), __help(""), __value(NULL) {
+Argument::Argument::Argument() : __name(""), __action(Action::Store), __flag(""), __help(""), __value(NULL) {
+    // logger::logger << logger::debug << "Argument::Argument::Argument()" << logger::endl;
 }
 
-Argument::Argument(std::string name, std::string flag, std::string help, char* value) : __name(name), __flag(flag), __help(help), __value(value) {
+Argument::Argument::Argument(std::string name, Action action, std::string flag, std::string help, char* value)
+    : __name(name), __action(action), __flag(flag), __help(help), __value(value) {
+    // logger::logger << logger::debug <<  //
+    //     "Create Argument: name=\"" << __name
+    //                << "\", "  //
+    //                   "flag=\""
+    //                << __flag
+    //                << "\", "  //
+    //                   "action=\""
+    //                << __action
+    //                << "\", "  //
+    //                   "value=\""
+    //                << __value
+    //                << "\", "  //
+    //                   "help=\""
+    //                << __help << "\";"  //
+    //                << this << ";" << logger::endl;
 }
 
-Argument::Argument(const Argument& other) : __name(other.__name), __flag(other.__flag), __help(other.__help), __value(other.__value){};
+Argument::Argument::Argument(const Argument& other)
+    : __name(other.__name), __action(other.__action), __flag(other.__flag), __help(other.__help),
+      __value(other.__value){
+          // logger::logger << logger::debug << this << ":" << &other << "; Argument::Argument(const Argument& other)=" << __value << "=" << other.__value << ";" << logger::endl;
+      };
 
-Argument::Argument(Argument&& other) : __name(other.__name), __flag(other.__flag), __help(other.__help), __value(other.__value){};
+Argument::Argument::Argument(Argument&& other) : __name(other.__name), __action(other.__action), __flag(other.__flag), __help(other.__help), __value(other.__value){};
 
-bool Argument::operator==(const char* other) const {
-    return __name == other || __flag == other;
-}
+bool Argument::Argument::operator==(const char* other) const { return __name == other || __flag == other; }
 
-bool Argument::operator==(std::string other) const {
-    return __name == other || __flag == other;
-}
+bool Argument::Argument::operator==(std::string other) const { return __name == other || __flag == other; }
 
-Argument& Argument::operator=(const Argument& other) noexcept {
-    __name  = other.__name;
-    __flag  = other.__flag;
-    __help  = other.__help;
+Argument::Argument& Argument::Argument::operator=(const Argument& other) noexcept {
+    __name = other.__name;
+    __flag = other.__flag;
+    __help = other.__help;
+    __value = other.__value;
+    __action = other.__action;
+    return *this;
+};
+
+Argument::Argument& Argument::Argument::operator=(Argument&& other) noexcept {
+    __name = other.__name;
+    __flag = other.__flag;
+    __help = other.__help;
     __value = other.__value;
     return *this;
 };
 
-Argument& Argument::operator=(Argument&& other) noexcept {
-    __name  = other.__name;
-    __flag  = other.__flag;
-    __help  = other.__help;
-    __value = other.__value;
-    return *this;
-};
+std::string Argument::Argument::ArgumentValue::getValue() const { return __value_str; }
 
-std::string Argument::ArgumentValue::getValue() const {
-    return __value_str;
-}
+std::string Argument::Argument::getName() const { return __name; }
 
-std::string Argument::getName() const {
-    return __name;
-}
+std::string Argument::Argument::getFlag() const { return __flag; }
 
-std::string Argument::getFlag() const {
-    return __flag;
-}
-
-std::string Argument::getValue() const {
+std::string Argument::Argument::getValue() const {
     if (__value.getValue().empty()) {
         return std::string("NULL");
     }
     return std::string(__value.getValue());
 }
 
-ArgumentParser::ArgumentParser(const std::string& prog_name, const VersionInfo& version) : __prog_name(prog_name), __version(version) {
-}
+Argument::ArgumentStore::ArgumentStore(std::string name, Action action, std::string flag, std::string help, char* value) : Argument(name, action, flag, help, value) {}
 
-ArgumentParser& ArgumentParser::getInstance(const std::string& prog_name, const VersionInfo& ver) {
+Argument::ArgumentStoreBool::ArgumentStoreBool(std::string name, Action action, std::string flag, std::string help, char* value) : Argument(name, action, flag, help, value) {}
+
+Argument::ArgumentHelp::ArgumentHelp(std::string name, Action action, std::string flag, std::string help, char* value) : Argument(name, action, flag, help, value) {}
+
+Argument::ArgumentVersion::ArgumentVersion(std::string name, Action action, std::string flag, std::string help, char* value) : Argument(name, action, flag, help, value) {}
+
+Argument::ArgumentParser::ArgumentParser(const std::string& prog_name, const VersionInfo& version) : __prog_name(prog_name), __version(version) {}
+
+Argument::ArgumentParser& Argument::ArgumentParser::getInstance(const std::string& prog_name, const VersionInfo& ver) {
     static ArgumentParser instance(prog_name, ver);
     return instance;
 }
 
-void ArgumentParser::parse(const int argc, char* argv[]) {
+void Argument::ArgumentParser::parse(const int argc, char* argv[]) {
     std::vector<std::pair<char*, char*>> mainArgs;
-    const char                           constant = '-';
+    const char constant = '-';
 
     for (uint32_t argIndex = 1; argIndex < argc; argIndex++) {
         if (argv[argIndex][0] == constant) {
@@ -124,21 +180,42 @@ void ArgumentParser::parse(const int argc, char* argv[]) {
     }
 
     for (const auto& a : mainArgs) {
-        for (auto& arg : __arguments) {
-            if (arg == a.first) {
-                arg.setValue(a.second);
-                logger::logger << logger::debug << "update argument value:" <<            //
-                    logger::setw(15) << a.first << "=" <<                                 //
-                    logger::setw(15) << (a.second == NULL ? "NULL" : a.second) <<         //
-                    " => " <<                                                             //
-                    logger::setw(15) << arg.getName() << "[" << arg.getFlag() << "]=" <<  //
-                    logger::setw(15) << arg.getValue() << logger::endl;
+        for (Argument* p_arg : __arguments) {
+            if ((*p_arg) == a.first) {
+                p_arg->setValue(a.second);
+                logger::logger << logger::debug << "update argument value:" <<                  //
+                    logger::setw(15) << a.first << "=" <<                                       //
+                    logger::setw(15) << (a.second == NULL ? "NULL" : a.second) <<               //
+                    " => " <<                                                                   //
+                    logger::setw(15) << p_arg->getName() << "[" << p_arg->getFlag() << "]=" <<  //
+                    logger::setw(15) << p_arg->getValue() << "; " << p_arg << ";" << logger::endl;
             }
         }
     }
 }
 
-void ArgumentParser::addArgument(Argument&& arg) {
-    logger::logger << logger::debug << "Add argument \"" << arg.getName() << "[" << arg.getFlag() << "] -> " << arg.getValue() << "\" to Argument Parser." << logger::endl;
-    __arguments.push_back(std::move(arg));
+Argument::Argument* Argument::ArgumentParser::__buildArgument(std::string name, Action action, std::string flag, std::string help, char* value) {
+    switch (action) {
+        case Action::Store:
+            return new ArgumentStore(name, action, flag, help, value);
+        case Action::StoreTrue:
+            return new ArgumentStoreBool(name, action, flag, help, value);
+        case Action::StoreFalse:
+            return new ArgumentStoreBool(name, action, flag, help, value);
+        case Action::Help:
+            return new ArgumentHelp(name, action, flag, help, value);
+        case Action::Version:
+            return new ArgumentVersion(name, action, flag, help, value);
+        default:
+            return NULL;
+    }
+}
+
+void Argument::ArgumentParser::addArgument(std::string name, Action action, std::string flag, std::string help, char* value) {
+    Argument* newArg = __buildArgument(name, action, flag, help, value);
+    if (newArg != nullptr) {
+        __arguments.push_back(newArg);
+    } else {
+        logger::logger << logger::error << "Argument \"" << name << "\" was not created." << logger::endl;
+    }
 }
