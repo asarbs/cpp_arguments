@@ -56,8 +56,10 @@ namespace Argument {
         uint32_t getParamValue() const { return 42; }
         std::string getName() const;
         std::string getFlag() const;
+        std::string getHelp() const;
         std::string getValue() const;
         void setValue(char* valueStr);
+        Action getAction() const;
 
        protected:
        private:
@@ -66,6 +68,7 @@ namespace Argument {
         std::string __flag;
         std::string __help;
         ArgumentValue __value;
+        bool __hadValue;
     };
 
     class ArgumentStore : public Argument {
@@ -140,6 +143,9 @@ namespace Argument {
         ArgumentParser& operator=(const ArgumentParser&) = delete;  // Remove the ability to copy and assign
         ArgumentParser& operator=(ArgumentParser&&) = delete;       // Remove the ability to move
         Argument* __buildArgument(std::string name, Action action, std::string flag, std::string help, char* value);
+        void __printVersion();
+        void __printHelp();
+
         std::string __prog_name;
         VersionInfo __version;
 

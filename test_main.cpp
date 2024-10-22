@@ -4,9 +4,22 @@
 #include "arguments.h"
 #include "gtest/gtest.h"
 
-class LoggerMain : public testing::Test {};
+class ArgumentsTest : public ::testing::Test {
+   protected:
+    // Code that will be executed once before all the tests
+    static void SetUpTestSuite() {}
 
-TEST_F(LoggerMain, StoreParameter) {
+    // Code that will be executed once after all the tests
+    static void TearDownTestSuite() {}
+
+    // Code that will be executed before each test
+    void SetUp() override { logger::logger.setLogLevel(logger::warning); }
+
+    // Code that will be executed after each test
+    void TearDown() override {}
+};
+
+TEST_F(ArgumentsTest, StoreParameter) {
     Argument::ArgumentParser& argpars = Argument::ArgumentParser::getInstance("test app", {12, 13, 4, "a0e67de04e79"});
 
     char app_name[] = "test_app";
@@ -16,8 +29,40 @@ TEST_F(LoggerMain, StoreParameter) {
     char* argv[] = {app_name, arg_1, par_1};
     char* val = (char*)"-1";
 
-    argpars.addArgument({"--test_a", Argument::Argument::Action::Store, "-a", "help str0", val});
+    argpars.addArgument("--test_a", Argument::Action::Store, "-a", "help str0", val);
     EXPECT_EQ(argpars.getArgument<uint32_t>("-a"), -1);
     argpars.parse(argc, argv);
     EXPECT_EQ(argpars.getArgument<uint32_t>("-a"), 42);
+}
+
+TEST_F(ArgumentsTest, PrintVersion) {
+    testing::internal::CaptureStdout();
+    Argument::ArgumentParser& argpars = Argument::ArgumentParser::getInstance("test app", {12, 13, 4, "a0e67de04e79"});
+
+    char* val = (char*)"-1";
+    argpars.addArgument("-version", Argument::Action::Version, "-v", "help str0", val);
+    char app_name[] = "test_app";
+    char arg_1[] = "-v";
+    int argc = 2;
+    char* argv[] = {app_name, arg_1};
+
+    EXPECT_EXIT(argpars.parse(argc, argv), ::testing::ExitedWithCode(0), "");
+    std::string output = testing::internal::GetCapturedStdout();
+    EXPECT_EQ(output, "test app 12.13.4:a0e67de04e79\n");
+}
+
+TEST_F(ArgumentsTest, PrintHelp) {
+    testing::internal::CaptureStdout();
+    Argument::ArgumentParser& argpars = Argument::ArgumentParser::getInstance("test app", {12, 13, 4, "a0e67de04e79"});
+
+    char* val = (char*)"-1";
+    argpars.addArgument("--help", Argument::Action::Help, "-h", "help str0", val);
+    char app_name[] = "test_app";
+    char arg_1[] = "-h";
+    int argc = 2;
+    char* argv[] = {app_name, arg_1};
+
+    EXPECT_EXIT(argpars.parse(argc, argv), ::testing::ExitedWithCode(0), "");
+    std::string output = testing::internal::GetCapturedStdout();
+    EXPECT_EQ(output, "test app 12.13.4:a0e67de04e79\n");
 }

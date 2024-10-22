@@ -83,10 +83,13 @@ void Argument::Argument::ArgumentValue::setValue(char* value_str) {
 
 void Argument::Argument::setValue(char* value_str) {
     __value.setValue(value_str);
+    __hadValue = true;
     // logger::logger << logger::debug << this << "; Argument::setValue=" << __value << "=" << (value_str == NULL ? "NULL" : value_str) << ";" << logger::endl;
 }
 
-Argument::Argument::Argument() : __name(""), __action(Action::Store), __flag(""), __help(""), __value(NULL) {
+Argument::Action Argument::Argument::getAction() const { return __action; }
+
+Argument::Argument::Argument() : __name(""), __action(Action::Store), __flag(""), __help(""), __value(NULL), __hadValue(false) {
     // logger::logger << logger::debug << "Argument::Argument::Argument()" << logger::endl;
 }
 
@@ -144,6 +147,8 @@ std::string Argument::Argument::getName() const { return __name; }
 
 std::string Argument::Argument::getFlag() const { return __flag; }
 
+std::string Argument::Argument::getHelp() const { return __help; }
+
 std::string Argument::Argument::getValue() const {
     if (__value.getValue().empty()) {
         return std::string("NULL");
@@ -167,6 +172,9 @@ Argument::ArgumentParser& Argument::ArgumentParser::getInstance(const std::strin
 }
 
 void Argument::ArgumentParser::parse(const int argc, char* argv[]) {
+    addArgument("--version", Action::Version, "-v", "show program's version number and exit", NULL);
+    addArgument("--help", Action::Help, "-h", "show this help message and exit", NULL);
+
     std::vector<std::pair<char*, char*>> mainArgs;
     const char constant = '-';
 
@@ -183,12 +191,22 @@ void Argument::ArgumentParser::parse(const int argc, char* argv[]) {
         for (Argument* p_arg : __arguments) {
             if ((*p_arg) == a.first) {
                 p_arg->setValue(a.second);
+
+                if (p_arg->getAction() == Action::Version) {
+                    __printVersion();
+                }
+                if (p_arg->getAction() == Action::Help) {
+                    __printHelp();
+                }
+
                 logger::logger << logger::debug << "update argument value:" <<                  //
-                    logger::setw(15) << a.first << "=" <<                                       //
-                    logger::setw(15) << (a.second == NULL ? "NULL" : a.second) <<               //
+                    logger::setw(10) << a.first << "=" <<                                       //
+                    logger::setw(10) << (a.second == NULL ? "NULL" : a.second) <<               //
                     " => " <<                                                                   //
-                    logger::setw(15) << p_arg->getName() << "[" << p_arg->getFlag() << "]=" <<  //
-                    logger::setw(15) << p_arg->getValue() << "; " << p_arg << ";" << logger::endl;
+                    logger::setw(10) << p_arg->getName() << "[" << p_arg->getFlag() << "]=" <<  //
+                    logger::setw(10) << p_arg->getValue() << " < " << p_arg->getAction()        //
+                               << "; "                                                          //
+                               << p_arg << ";" << logger::endl;
             }
         }
     }
@@ -218,4 +236,27 @@ void Argument::ArgumentParser::addArgument(std::string name, Action action, std:
     } else {
         logger::logger << logger::error << "Argument \"" << name << "\" was not created." << logger::endl;
     }
+}
+
+void Argument::ArgumentParser::__printVersion() {
+    std::cout << __prog_name << " " << __version.major << "." << __version.minor << "." << __version.patch;
+    if (__version.build.has_value()) {
+        std::cout << ":" << __version.build.value();
+    }
+    std::cout << std::endl;
+    exit(0);
+}
+
+void Argument::ArgumentParser::__printHelp() {
+    std::cout << "usage: " << __prog_name;
+    for (Argument* p_arg : __arguments) {
+        std::cout << " [" << p_arg->getFlag() << "]";
+    }
+
+    std::cout << std::endl;
+    std::cout << "options:" << std::endl;
+    for (Argument* p_arg : __arguments) {
+        std::cout << std::setw(5) << p_arg->getFlag() << ", " << std::setw(15) << std::left << p_arg->getName() << std::right << p_arg->getHelp() << std::endl;
+    }
+    exit(0);
 }

@@ -16,7 +16,7 @@
 #include "logger.h"
 
 int main(int argc, char* argv[]) {
-    logger::logger.setLogLevel(logger::debug);
+    logger::logger.setLogLevel(logger::info);
 
     Argument::ArgumentParser& argpars = Argument::ArgumentParser::getInstance("test app", {12, 13, 4, "a0e67de04e79"});
     char* val = (char*)"-1";
