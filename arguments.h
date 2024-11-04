@@ -50,6 +50,9 @@ class Argument {
         Argument(Argument&& other);
         Argument& operator=(const Argument& other) noexcept;
         Argument& operator=(Argument&& other) noexcept;
+
+        friend std::ostream& operator<<(std::ostream& o, const Argument& v);
+
         // ~Argument();
         bool operator==(const char* other) const;
         bool operator==(std::string other) const;
@@ -61,6 +64,7 @@ class Argument {
         std::string getFlag() const;
         std::string getHelp() const;
         std::string getValue() const;
+        std::vector<std::string> getValueList() const;
         void setValue(std::string valueStr);
         Action getAction() const;
         virtual bool validate() const;
@@ -162,6 +166,7 @@ class ArgumentParser {
 };
 
 std::ostream& operator<<(std::ostream& o, const VersionInfo& v);
+std::ostream& operator<<(std::ostream& o, const Argument& v);
 logger::Logger& operator<<(logger::Logger& o, const Action& a);
 logger::Logger& operator<<(logger::Logger& o, const Argument::ArgumentValue& v);
 
