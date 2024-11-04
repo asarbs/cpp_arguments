@@ -1,174 +1,334 @@
-#ifndef ARGUMENTS_H_
-#define ARGUMENTS_H_
+#include "arguments.h"
 
-#include <iostream>
-#include <map>
-#include <optional>
-#include <string>
+#include "logger.h"
 
-#include "std/logger.h"
+std::ostream& operator<<(std::ostream& o, const Argument::VersionInfo& v) {
+    o << v.major << "." << v.minor << "." << v.patch;
+    if (v.build) {
+        o << " (" << *v.build << ")";
+    }
 
-namespace Argument {
-struct VersionInfo {
-        int major;
-        int minor;
-        int patch;
-        std::optional<std::string> build;
+    return o;
+}
+
+logger::Logger& Argument::operator<<(logger::Logger& o, const Action& a) {
+    switch (a) {
+        case Action::Store:
+            o << "Store";
+            break;
+        case Action::StoreTrue:
+            o << "StoreTrue";
+            break;
+        case Action::StoreFalse:
+            o << "StoreFalse";
+            break;
+        case Action::Help:
+            o << "Help";
+            break;
+        case Action::Version:
+            o << "Version";
+            break;
+        default:
+            o << "Unknown Action";
+    }
+    return o;
+}
+
+logger::Logger& Argument::operator<<(logger::Logger& o, const Argument::Argument::ArgumentValue& v) {
+    o << v.__value_str;
+    return o;
+}
+
+Argument::Argument::ArgumentValue::ArgumentValue(std::string value) {
+    __value_str = value;
+}
+
+Argument::Argument::ArgumentValue::ArgumentValue(const Argument::Argument::ArgumentValue& other) : __value_str(other.__value_str) {
+    // logger::logger << logger::debug <<
+    // "ArgumentValue::ArgumentValue(const
+    // Argument::Argument::ArgumentValue& other)=" << __value_str << "="
+    // << other.__value_str << ";"
+    // << logger::endl;
+}
+
+Argument::Argument::ArgumentValue::ArgumentValue(Argument::Argument::ArgumentValue&& other) noexcept : __value_str(other.__value_str) {
+    // logger::logger << logger::debug <<
+    // "ArgumentValue::ArgumentValue(Argument::Argument::ArgumentValue&&
+    // other)=" << __value_str << ";" << logger::endl;
+}
+
+Argument::Argument::ArgumentValue& Argument::Argument::ArgumentValue::operator=(const Argument::Argument::ArgumentValue& other) {
+    if (this != &other) {
+        __value_str = other.__value_str;
+    }
+    return *this;
+}
+
+Argument::Argument::ArgumentValue& Argument::Argument::ArgumentValue::operator=(Argument::Argument::ArgumentValue&& other) noexcept {
+    if (this != &other) {
+        __value_str = other.__value_str;
+    }
+    return *this;
+}
+
+void Argument::Argument::ArgumentValue::setValue(std::string value_str) {
+    __value_str = value_str;
+}
+
+void Argument::Argument::setValue(std::string value_str) {
+    __value.setValue(value_str);
+    __hadValue = true;
+    // logger::logger << logger::debug << this << "; Argument::setValue=" <<
+    // __value << "=" << (value_str == NULL ? "NULL" : value_str) << ";" <<
+    // logger::endl;
+}
+
+Argument::Action Argument::Argument::getAction() const {
+    return __action;
+}
+
+Argument::Argument::Argument() : __name(""), __action(Action::Store), __flag(""), __help(""), __value(NULL), __hadValue(false) {
+    // logger::logger << logger::debug << "Argument::Argument::Argument()" <<
+    // logger::endl;
+}
+
+Argument::Argument::Argument(std::string name, Action action, std::string flag, std::string help, std::string value)
+    : __name(name), __action(action), __flag(flag), __help(help), __value(value) {
+    // logger::logger << logger::debug <<  //
+    //     "Create Argument: name=\"" << __name
+    //                << "\", "  //
+    //                   "flag=\""
+    //                << __flag
+    //                << "\", "  //
+    //                   "action=\""
+    //                << __action
+    //                << "\", "  //
+    //                   "value=\""
+    //                << __value
+    //                << "\", "  //
+    //                   "help=\""
+    //                << __help << "\";"  //
+    //                << this << ";" << logger::endl;
+}
+
+Argument::Argument::Argument(std::string name, Action action, std::string flag, std::string help, std::string value, std::vector<std::string> valueList)
+    : __name(name), __action(action), __flag(flag), __help(help), __value(value), __valueList(valueList) {
+}
+
+Argument::Argument::Argument(const Argument& other) : __name(other.__name), __action(other.__action), __flag(other.__flag), __help(other.__help), __value(other.__value) {
+    // logger::logger << logger::debug << this << ":" << &other << ";
+    // Argument::Argument(const Argument& other)=" << __value << "=" <<
+    // other.__value << ";" << logger::endl;
+}
+
+Argument::Argument::Argument(Argument&& other) : __name(other.__name), __action(other.__action), __flag(other.__flag), __help(other.__help), __value(other.__value) {
+}
+
+bool Argument::Argument::operator==(const char* other) const {
+    return __name == other || __flag == other;
+}
+
+bool Argument::Argument::operator==(std::string other) const {
+    return __name == other || __flag == other;
+}
+
+Argument::Argument& Argument::Argument::operator=(const Argument& other) noexcept {
+    __name   = other.__name;
+    __flag   = other.__flag;
+    __help   = other.__help;
+    __value  = other.__value;
+    __action = other.__action;
+    return *this;
 };
 
-enum class Action {
-    Store,
-    StoreTrue,
-    StoreFalse,
-    Help,
-    Version,
+Argument::Argument& Argument::Argument::operator=(Argument&& other) noexcept {
+    __name  = other.__name;
+    __flag  = other.__flag;
+    __help  = other.__help;
+    __value = other.__value;
+    return *this;
 };
 
-class Argument {
-    public:
-        class ArgumentValue {
-            public:
-                ArgumentValue(std::string value);
-                ArgumentValue(const ArgumentValue& other);
-                ArgumentValue(ArgumentValue&& other) noexcept;
-                ArgumentValue& operator=(const ArgumentValue& other);
-                ArgumentValue& operator=(ArgumentValue&& other) noexcept;
+std::string Argument::Argument::ArgumentValue::getValue() const {
+    return __value_str;
+}
 
-                friend logger::Logger& operator<<(logger::Logger& o, const Argument::ArgumentValue& v);
+bool Argument::Argument::validate() const {
+    if (__valueList.empty()) {
+        return true;
+    }
+    if (std::find(__valueList.begin(), __valueList.end(), __value.getValue()) != __valueList.end()) {
+        return true;
+    }
+    return false;
+}
 
-                void setValue(std::string valueStr);
-                std::string getValue() const;
+std::string Argument::Argument::getName() const {
+    return __name;
+}
 
-            protected:
-            private:
-                std::string __value_str;
-        };
-        Argument();
-        Argument(std::string name, Action action, std::string flag, std::string help, std::string value);
-        Argument(std::string name, Action action, std::string flag, std::string help, std::string value, std::vector<std::string> valueList);
-        Argument(const Argument& other);
-        Argument(Argument&& other);
-        Argument& operator=(const Argument& other) noexcept;
-        Argument& operator=(Argument&& other) noexcept;
+std::string Argument::Argument::getFlag() const {
+    return __flag;
+}
 
-        friend std::ostream& operator<<(std::ostream& o, const Argument& v);
+std::string Argument::Argument::getHelp() const {
+    return __help;
+}
 
-        // ~Argument();
-        bool operator==(const char* other) const;
-        bool operator==(std::string other) const;
+std::string Argument::Argument::getValue() const {
+    if (__value.getValue().empty()) {
+        return std::string("NULL");
+    }
+    return std::string(__value.getValue());
+}
 
-        uint32_t getParamValue() const {
-            return 42;
-        }
-        std::string getName() const;
-        std::string getFlag() const;
-        std::string getHelp() const;
-        std::string getValue() const;
-        std::vector<std::string> getValueList() const;
-        void setValue(std::string valueStr);
-        Action getAction() const;
-        virtual bool validate() const;
+std::vector<std::string> Argument::Argument::getValueList() const {
+    return __valueList;
+}
 
-    protected:
-    private:
-        std::string __name;
-        Action __action;
-        std::string __flag;
-        std::string __help;
-        ArgumentValue __value;
-        std::vector<std::string> __valueList;
-        bool __hadValue;
-};
+std::ostream& Argument::operator<<(std::ostream& o, const Argument& v) {
+    std::vector<std::string> list = v.getValueList();
 
-class ArgumentStore : public Argument {
-    public:
-        ArgumentStore(std::string name, Action action, std::string flag, std::string help, std::string value);
-        ArgumentStore(std::string name, Action action, std::string flag, std::string help, std::string value, std::vector<std::string> valueList);
-
-    protected:
-    private:
-};
-class ArgumentStoreBool : public Argument {
-    public:
-        ArgumentStoreBool(std::string name, Action action, std::string flag, std::string help, std::string value);
-        ArgumentStoreBool(std::string name, Action action, std::string flag, std::string help, std::string value, std::vector<std::string> valueList);
-
-    protected:
-    private:
-};
-class ArgumentHelp : public Argument {
-    public:
-        ArgumentHelp(std::string name, Action action, std::string flag, std::string help);
-
-    protected:
-    private:
-};
-class ArgumentVersion : public Argument {
-    public:
-        ArgumentVersion(std::string name, Action action, std::string flag, std::string help);
-
-    protected:
-    private:
-};
-
-class ArgumentParser {
-    public:
-        static ArgumentParser& getInstance(const std::string& progName, const VersionInfo& ver);
-        void addArgument(std::string name, Action action, std::string flag, std::string help, std::string value);
-        void addArgument(std::string name, Action action, std::string flag, std::string help, std::string value, std::vector<std::string> valueList);
-
-        template <typename T>
-        std::optional<T> getArgument(std::string argName) {
-            for (Argument* p_arg : __arguments) {
-                if ((*p_arg) == argName) {
-                    if (!p_arg->validate()) {
-                        return std::optional<T>();
-                    }
-                    std::stringstream ss(p_arg->getValue());
-                    T val;
-                    if (ss >> val) {
-                        return std::optional<T>(val);
-                    } else {
-                        logger::logger << logger::warning << "Can't get vale of \"" << p_arg->getName() << "\"." << logger::endl;
-                    }
-                }
+    o << std::setw(5) << v.getFlag() << ", " << std::setw(15) << std::left << v.getName();
+    if (!list.empty()) {
+        o << "[";
+        for (auto it = list.begin(); it != list.end(); ++it) {
+            o << *it;
+            if (it != list.end() - 1) {
+                o << ",";
             }
-            return std::optional<T>();
         }
-        std::optional<std::string> getArgument(std::string argName) {
-            for (Argument* p_arg : __arguments) {
-                if ((*p_arg) == argName) {
-                    return p_arg->getValue();
+        o << "] ";
+    }
+
+    o << std::right << v.getHelp();
+
+    return o;
+}
+
+Argument::ArgumentStore::ArgumentStore(std::string name, Action action, std::string flag, std::string help, std::string value) : Argument(name, action, flag, help, value) {
+}
+
+Argument::ArgumentStore::ArgumentStore(std::string name, Action action, std::string flag, std::string help, std::string value, std::vector<std::string> valueList)
+    : Argument(name, action, flag, help, value, valueList) {
+}
+
+Argument::ArgumentStoreBool::ArgumentStoreBool(std::string name, Action action, std::string flag, std::string help, std::string value) : Argument(name, action, flag, help, value) {
+}
+
+Argument::ArgumentStoreBool::ArgumentStoreBool(std::string name, Action action, std::string flag, std::string help, std::string value, std::vector<std::string> valueList)
+    : Argument(name, action, flag, help, value, valueList) {
+}
+
+Argument::ArgumentHelp::ArgumentHelp(std::string name, Action action, std::string flag, std::string help) : Argument(name, action, flag, help, "") {
+}
+
+Argument::ArgumentVersion::ArgumentVersion(std::string name, Action action, std::string flag, std::string help) : Argument(name, action, flag, help, "") {
+}
+
+Argument::ArgumentParser::ArgumentParser(const std::string& prog_name, const VersionInfo& version) : __prog_name(prog_name), __version(version) {
+}
+
+Argument::ArgumentParser& Argument::ArgumentParser::getInstance(const std::string& prog_name, const VersionInfo& ver) {
+    static ArgumentParser instance(prog_name, ver);
+    return instance;
+}
+
+void Argument::ArgumentParser::parse(const int argc, char* argv[]) {
+    addArgument("--version", Action::Version, "-v", "show program's version number and exit", "");
+    addArgument("--help", Action::Help, "-h", "show this help message and exit", "");
+
+    std::vector<std::pair<char*, char*>> mainArgs;
+    const char constant = '-';
+
+    for (uint32_t argIndex = 1; argIndex < argc; argIndex++) {
+        if (argv[argIndex][0] == constant) {
+            mainArgs.push_back({argv[argIndex], NULL});
+
+        } else {
+            mainArgs.back().second = argv[argIndex];
+        }
+    }
+
+    for (const auto& a : mainArgs) {
+        for (Argument* p_arg : __arguments) {
+            if ((*p_arg) == a.first) {
+                if (a.second == NULL) {
+                    p_arg->setValue("");
+                } else {
+                    p_arg->setValue(a.second);
                 }
+
+                if (p_arg->getAction() == Action::Version) {
+                    __printVersion();
+                }
+                if (p_arg->getAction() == Action::Help) {
+                    __printHelp();
+                }
+
+                logger::logger << logger::debug << "update argument value:" <<                  //
+                    logger::setw(10) << a.first << "=" <<                                       //
+                    logger::setw(10) << (a.second == NULL ? "NULL" : a.second) <<               //
+                    " => " <<                                                                   //
+                    logger::setw(10) << p_arg->getName() << "[" << p_arg->getFlag() << "]=" <<  //
+                    logger::setw(10) << p_arg->getValue() << " < " << p_arg->getAction()        //
+                               << "; "                                                          //
+                               << p_arg << ";" << logger::endl;
             }
-            return std::optional<std::string>();
         }
+    }
+}
 
-        void parse(const int argc, char* argv[]);
+Argument::Argument* Argument::ArgumentParser::__buildArgument(std::string name, Action action, std::string flag, std::string help, std::string value,
+                                                              std::vector<std::string> valueList) {
+    switch (action) {
+        case Action::Store:
+            return new ArgumentStore(name, action, flag, help, value, valueList);
+        case Action::StoreTrue:
+            return new ArgumentStoreBool(name, action, flag, help, value, valueList);
+        case Action::StoreFalse:
+            return new ArgumentStoreBool(name, action, flag, help, value, valueList);
+        case Action::Help:
+            return new ArgumentHelp(name, action, flag, help);
+        case Action::Version:
+            return new ArgumentVersion(name, action, flag, help);
+        default:
+            return NULL;
+    }
+}
 
-    protected:
-    private:
-        ArgumentParser(const std::string& progName,
-                       const VersionInfo& version);                 // Private constructor - prevents
-                                                                    // creating objects outside the class
-        ArgumentParser(const ArgumentParser&)            = delete;  // Remove the ability to copy and assign
-        ArgumentParser(ArgumentParser&&)                 = delete;  // Remove the ability to move
-        ArgumentParser& operator=(const ArgumentParser&) = delete;  // Remove the ability to copy and assign
-        ArgumentParser& operator=(ArgumentParser&&)      = delete;  // Remove the ability to move
-        Argument* __buildArgument(std::string name, Action action, std::string flag, std::string help, std::string value, std::vector<std::string> valueList);
-        void __printVersion();
-        void __printHelp();
+void Argument::ArgumentParser::addArgument(std::string name, Action action, std::string flag, std::string help, std::string value) {
+    addArgument(name, action, flag, help, value, {});
+}
 
-        std::string __prog_name;
-        VersionInfo __version;
+void Argument::ArgumentParser::addArgument(std::string name, Action action, std::string flag, std::string help, std::string value, std::vector<std::string> valueList) {
+    Argument* newArg = __buildArgument(name, action, flag, help, value, valueList);
+    if (newArg != nullptr) {
+        __arguments.push_back(newArg);
+    } else {
+        logger::logger << logger::error << "Argument \"" << name << "\" was not created." << logger::endl;
+    }
+}
 
-        std::vector<Argument*> __arguments;
-};
+void Argument::ArgumentParser::__printVersion() {
+    std::cout << __prog_name << " " << __version.major << "." << __version.minor << "." << __version.patch;
+    if (__version.build.has_value()) {
+        std::cout << ":" << __version.build.value();
+    }
+    std::cout << std::endl;
+    exit(0);
+}
 
-std::ostream& operator<<(std::ostream& o, const VersionInfo& v);
-std::ostream& operator<<(std::ostream& o, const Argument& v);
-logger::Logger& operator<<(logger::Logger& o, const Action& a);
-logger::Logger& operator<<(logger::Logger& o, const Argument::ArgumentValue& v);
+void Argument::ArgumentParser::__printHelp() {
+    std::cout << "usage: " << __prog_name;
+    for (Argument* p_arg : __arguments) {
+        std::cout << " [" << p_arg->getFlag() << "]";
+    }
 
-};      // namespace Argument
-#endif  // ARGUMENTS_H_
+    std::cout << std::endl;
+    std::cout << "options:" << std::endl;
+    for (Argument* p_arg : __arguments) {
+        std::cout << *p_arg << std::endl;
+    }
+    exit(0);
+}
