@@ -25,7 +25,7 @@ TEST_DIR= ${SOURCES_DIR}/test_src
 FIND_CMD = find ${SOURCES_DIR} \( -iname "*.h" -o -iname "*.cpp" -o -iname "*.cppm" \) -and ! -path "*/libs/*"
 
 TARGET_NAME := app
-TARGET_ARGS := -a 111 --test_b 2 -c test_name -d -e
+TARGET_ARGS := -a 111 --test_b 2 -c test_name -d 101 -e -f -42
 prof: TARGET_NAME := prof_app
 
 GTEST_DIR=./libs/googletest/googletest

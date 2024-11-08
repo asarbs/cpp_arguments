@@ -24,7 +24,8 @@ int main(int argc, char* argv[]) {
     argpars.addArgument("--test_b", Argument::Action::Store, "-b", "help str1", val);
     argpars.addArgument("--test_c", Argument::Action::Store, "-c", "help str3", val);
     argpars.addArgument("--test_d", Argument::Action::Store, "-d", "help str4", val);
-    argpars.addArgument("--test_e", Argument::Action::Store, "-e", "help str5", val);
+    argpars.addArgument("--test_e", Argument::Action::StoreBool, "-e", "help str5", val);
+    argpars.addArgument("--test_f", Argument::Action::Store, "-f", "help str5", val);
     argpars.parse(argc, argv);
 
     std::optional<uint32_t> arg_a = argpars.getArgument<uint32_t>("-a");
@@ -39,8 +40,11 @@ int main(int argc, char* argv[]) {
     std::optional<uint32_t> arg_d = argpars.getArgument<uint32_t>("-d");
     logger::logger << logger::info << "-d = " << arg_d.has_value() << "," << *arg_d << logger::endl;
 
-    std::optional<uint32_t> arg_e = argpars.getArgument<uint32_t>("-e");
+    std::optional<bool> arg_e = argpars.getArgument<bool>("-e");
     logger::logger << logger::info << "-e = " << arg_e.has_value() << "," << *arg_e << logger::endl;
+
+    std::optional<int32_t> arg_f = argpars.getArgument<int32_t>("-f");
+    logger::logger << logger::info << "-f = " << arg_f.has_value() << "," << *arg_f << logger::endl;
 
     uint32_t b_val = arg_b.value();
     uint32_t a_val = arg_a.value();

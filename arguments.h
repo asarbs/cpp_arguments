@@ -9,39 +9,38 @@
 #include "logger.h"
 
 namespace Argument {
-struct VersionInfo {
+    struct VersionInfo {
         int major;
         int minor;
         int patch;
         std::optional<std::string> build;
-};
+    };
 
-enum class Action {
-    Store,
-    StoreTrue,
-    StoreFalse,
-    Help,
-    Version,
-};
+    enum class Action {
+        Store,
+        StoreBool,
+        Help,
+        Version,
+    };
 
-class Argument {
-    public:
+    class Argument {
+       public:
         class ArgumentValue {
-            public:
-                ArgumentValue(std::string value);
-                ArgumentValue(const ArgumentValue& other);
-                ArgumentValue(ArgumentValue&& other) noexcept;
-                ArgumentValue& operator=(const ArgumentValue& other);
-                ArgumentValue& operator=(ArgumentValue&& other) noexcept;
+           public:
+            ArgumentValue(std::string value);
+            ArgumentValue(const ArgumentValue& other);
+            ArgumentValue(ArgumentValue&& other) noexcept;
+            ArgumentValue& operator=(const ArgumentValue& other);
+            ArgumentValue& operator=(ArgumentValue&& other) noexcept;
 
-                friend logger::Logger& operator<<(logger::Logger& o, const Argument::ArgumentValue& v);
+            friend logger::Logger& operator<<(logger::Logger& o, const Argument::ArgumentValue& v);
 
-                void setValue(std::string valueStr);
-                std::string getValue() const;
+            void setValue(std::string valueStr);
+            std::string getValue() const;
 
-            protected:
-            private:
-                std::string __value_str;
+           protected:
+           private:
+            std::string __value_str;
         };
         Argument();
         Argument(std::string name, Action action, std::string flag, std::string help, std::string value);
@@ -57,9 +56,6 @@ class Argument {
         bool operator==(const char* other) const;
         bool operator==(std::string other) const;
 
-        uint32_t getParamValue() const {
-            return 42;
-        }
         std::string getName() const;
         std::string getFlag() const;
         std::string getHelp() const;
@@ -69,8 +65,8 @@ class Argument {
         Action getAction() const;
         virtual bool validate() const;
 
-    protected:
-    private:
+       protected:
+       private:
         std::string __name;
         Action __action;
         std::string __flag;
@@ -78,41 +74,40 @@ class Argument {
         ArgumentValue __value;
         std::vector<std::string> __valueList;
         bool __hadValue;
-};
+    };
 
-class ArgumentStore : public Argument {
-    public:
+    class ArgumentStore : public Argument {
+       public:
         ArgumentStore(std::string name, Action action, std::string flag, std::string help, std::string value);
         ArgumentStore(std::string name, Action action, std::string flag, std::string help, std::string value, std::vector<std::string> valueList);
 
-    protected:
-    private:
-};
-class ArgumentStoreBool : public Argument {
-    public:
+       protected:
+       private:
+    };
+    class ArgumentStoreBool : public Argument {
+       public:
         ArgumentStoreBool(std::string name, Action action, std::string flag, std::string help, std::string value);
         ArgumentStoreBool(std::string name, Action action, std::string flag, std::string help, std::string value, std::vector<std::string> valueList);
-
-    protected:
-    private:
-};
-class ArgumentHelp : public Argument {
-    public:
+       protected:
+       private:
+    };
+    class ArgumentHelp : public Argument {
+       public:
         ArgumentHelp(std::string name, Action action, std::string flag, std::string help);
 
-    protected:
-    private:
-};
-class ArgumentVersion : public Argument {
-    public:
+       protected:
+       private:
+    };
+    class ArgumentVersion : public Argument {
+       public:
         ArgumentVersion(std::string name, Action action, std::string flag, std::string help);
 
-    protected:
-    private:
-};
+       protected:
+       private:
+    };
 
-class ArgumentParser {
-    public:
+    class ArgumentParser {
+       public:
         static ArgumentParser& getInstance(const std::string& progName, const VersionInfo& ver);
         void addArgument(std::string name, Action action, std::string flag, std::string help, std::string value);
         void addArgument(std::string name, Action action, std::string flag, std::string help, std::string value, std::vector<std::string> valueList);
@@ -135,6 +130,26 @@ class ArgumentParser {
             }
             return std::optional<T>();
         }
+
+        template <>
+        std::optional<bool> getArgument<bool>(std::string argName) {
+            for (Argument* p_arg : __arguments) {
+                if ((*p_arg) == argName) {
+                    if (!p_arg->validate()) {
+                        return std::optional<bool>();
+                    }
+                    if(p_arg->getAction() == Action::StoreBool ){
+                        if( p_arg->getValue() == "true") {
+                            return std::optional<bool>(true);
+                        } else {
+                            return std::optional<bool>(false);
+                        }
+                    } 
+                }
+            }
+            return std::optional<bool>();
+        }
+
         std::optional<std::string> getArgument(std::string argName) {
             for (Argument* p_arg : __arguments) {
                 if ((*p_arg) == argName) {
@@ -145,16 +160,17 @@ class ArgumentParser {
         }
 
         void parse(const int argc, char* argv[]);
+        void reset();
 
-    protected:
-    private:
+       protected:
+       private:
         ArgumentParser(const std::string& progName,
                        const VersionInfo& version);                 // Private constructor - prevents
                                                                     // creating objects outside the class
-        ArgumentParser(const ArgumentParser&)            = delete;  // Remove the ability to copy and assign
-        ArgumentParser(ArgumentParser&&)                 = delete;  // Remove the ability to move
+        ArgumentParser(const ArgumentParser&) = delete;             // Remove the ability to copy and assign
+        ArgumentParser(ArgumentParser&&) = delete;                  // Remove the ability to move
         ArgumentParser& operator=(const ArgumentParser&) = delete;  // Remove the ability to copy and assign
-        ArgumentParser& operator=(ArgumentParser&&)      = delete;  // Remove the ability to move
+        ArgumentParser& operator=(ArgumentParser&&) = delete;       // Remove the ability to move
         Argument* __buildArgument(std::string name, Action action, std::string flag, std::string help, std::string value, std::vector<std::string> valueList);
         void __printVersion();
         void __printHelp();
@@ -163,12 +179,12 @@ class ArgumentParser {
         VersionInfo __version;
 
         std::vector<Argument*> __arguments;
-};
+    };
 
-std::ostream& operator<<(std::ostream& o, const VersionInfo& v);
-std::ostream& operator<<(std::ostream& o, const Argument& v);
-logger::Logger& operator<<(logger::Logger& o, const Action& a);
-logger::Logger& operator<<(logger::Logger& o, const Argument::ArgumentValue& v);
+    std::ostream& operator<<(std::ostream& o, const VersionInfo& v);
+    std::ostream& operator<<(std::ostream& o, const Argument& v);
+    logger::Logger& operator<<(logger::Logger& o, const Action& a);
+    logger::Logger& operator<<(logger::Logger& o, const Argument::ArgumentValue& v);
 
 };      // namespace Argument
 #endif  // ARGUMENTS_H_
