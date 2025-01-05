@@ -88,6 +88,7 @@ namespace Argument {
        public:
         ArgumentStoreBool(std::string name, Action action, std::string flag, std::string help, std::string value);
         ArgumentStoreBool(std::string name, Action action, std::string flag, std::string help, std::string value, std::vector<std::string> valueList);
+
        protected:
        private:
     };
@@ -108,7 +109,7 @@ namespace Argument {
 
     class ArgumentParser {
        public:
-        static ArgumentParser& getInstance(const std::string& progName, const VersionInfo& ver);
+        static ArgumentParser& getInstance(const std::string& progName = "", const VersionInfo& ver = {0, 0, 0});
         void addArgument(std::string name, Action action, std::string flag, std::string help, std::string value);
         void addArgument(std::string name, Action action, std::string flag, std::string help, std::string value, std::vector<std::string> valueList);
 
@@ -129,25 +130,6 @@ namespace Argument {
                 }
             }
             return std::optional<T>();
-        }
-
-        template <>
-        std::optional<bool> getArgument<bool>(std::string argName) {
-            for (Argument* p_arg : __arguments) {
-                if ((*p_arg) == argName) {
-                    if (!p_arg->validate()) {
-                        return std::optional<bool>();
-                    }
-                    if(p_arg->getAction() == Action::StoreBool ){
-                        if( p_arg->getValue() == "true") {
-                            return std::optional<bool>(true);
-                        } else {
-                            return std::optional<bool>(false);
-                        }
-                    } 
-                }
-            }
-            return std::optional<bool>();
         }
 
         std::optional<std::string> getArgument(std::string argName) {
@@ -186,5 +168,5 @@ namespace Argument {
     logger::Logger& operator<<(logger::Logger& o, const Action& a);
     logger::Logger& operator<<(logger::Logger& o, const Argument::ArgumentValue& v);
 
-};      // namespace Argument
+};  // namespace Argument
 #endif  // ARGUMENTS_H_

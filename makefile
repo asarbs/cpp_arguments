@@ -1,9 +1,13 @@
-# Copyright (C) 2023 Grinn sp. z o.o.
-#
-# These computer program listings and specifications, are the property of
-# Grinn sp. z o.o. and shall not be reproduced or copied or used in
-# whole or in part without written permission from Grinn sp. z o.o.
-
+/*
+ * World VTT
+ *
+ * Copyright (C) 2024, Asar Miniatures
+ * All rights reserved.
+ *
+ * This file is part of the [Project Name] project. It may be used, modified,
+ * and distributed under the terms specified by the copyright holder.
+ *
+ */
 
 PWD ?= $(shell pwd)
 
@@ -29,14 +33,14 @@ TARGET_ARGS := -a 111 --test_b 2 -c test_name -d 101 -e -f -42
 prof: TARGET_NAME := prof_app
 
 GTEST_DIR=./libs/googletest/googletest
-CPPFLAGS_PROD := 
+CPPFLAGS_PROD :=
 prof: CPPFLAGS_PROD += -pg
-CPPFLAGS_PROD += -g 
-# CPPFLAGS_PROD += -isystem 
-CPPFLAGS_PROD += -Wall 
+CPPFLAGS_PROD += -g
+# CPPFLAGS_PROD += -isystem
+CPPFLAGS_PROD += -Wall
 CPPFLAGS_PROD += -pedantic
-# CPPFLAGS_PROD += -pthread 
-# CPPFLAGS_PROD += -lpthread 
+# CPPFLAGS_PROD += -pthread
+# CPPFLAGS_PROD += -lpthread
 CPPFLAGS_PROD += -std=c++20
 CPPFLAGS_PROD += -fpermissive
 CPPFLAGS_PROD += -ferror-limit=1
@@ -48,14 +52,14 @@ CPPFLAGS_PROD += -fprebuilt-module-path=.
 CXXFLAGS := -g -Wall -Wextra -pthread
 CPPFLAGS_TEST := -g -Wall -Wextra -pthread -isystem $(GTEST_DIR)/include
 
-SOURCES_C := 
+SOURCES_C :=
 
-SOURCES_CPP := 
+SOURCES_CPP :=
 SOURCES_CPP += libs/logger/logger.cpp
 SOURCES_CPP += arguments.cpp
 SOURCES_CPP += main.cpp
 
-OBJS := 
+OBJS :=
 OBJS += $(SOURCES_C:%.c=%.o)
 OBJS += $(SOURCES_CPP:%.cpp=%.o)
 
@@ -108,8 +112,8 @@ clean:
 	${Q}rm -rf *.txt
 	${Q}rm -rf $(TARGET_NAME)
 	${Q}rm -rf gmon.out
-	${Q}find . -name "*.o" | xargs -r rm 
-	${Q}find . -name "*.pcm" | xargs -r rm 
+	${Q}find . -name "*.o" | xargs -r rm
+	${Q}find . -name "*.pcm" | xargs -r rm
 
 %.o : %.cpp
 	@echo 'Build object file: $< -> $@'
@@ -117,11 +121,11 @@ clean:
 
 %.o: %.c
 	@echo 'Build file: $< -> $@'
-	$(Q)$(GCC) $(CPPFLAGS_PROD) $(INCLUDES_PARAMS) -c "$<" -o "$@" 
-	
-test: $(TEST_OBJS) gtest-all.o gtest_main.o 
+	$(Q)$(GCC) $(CPPFLAGS_PROD) $(INCLUDES_PARAMS) -c "$<" -o "$@"
+
+test: $(TEST_OBJS) gtest-all.o gtest_main.o
 	@echo 'Build file: test_main'
-	$(Q)$(GCC) $(CPPFLAGS_PROD) $(INCLUDES_PARAMS) $^ -o test_exe 
+	$(Q)$(GCC) $(CPPFLAGS_PROD) $(INCLUDES_PARAMS) $^ -o test_exe
 	./test_exe --gtest_catch_exceptions=0
 
 build: $(OBJS)
@@ -142,7 +146,7 @@ rhlp: build
 
 prof: build
 	@echo "Prof: $(TARGET_NAME)"
-	$(Q)./$(TARGET_NAME) 
+	$(Q)./$(TARGET_NAME)
 	$(Q)gprof ./$(TARGET_NAME) gmon.out > analysis.txt
 
 format-check:

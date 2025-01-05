@@ -262,7 +262,7 @@ void Argument::ArgumentParser::__printHelp() {
     std::cout << std::endl;
     std::cout << "options:" << std::endl;
     for (Argument* p_arg : __arguments) {
-        std::cout << std::setw(5) << p_arg->getFlag() << ", " << std::setw(15) << std::left << p_arg->getName() << std::right << p_arg->getHelp() << std::endl;
+        std::cout << std::setfill(' ') << std::setw(5) << p_arg->getFlag() << ", " << std::setw(15) << std::left << p_arg->getName() << std::right << p_arg->getHelp() << std::endl;
     }
     exit(0);
 }
