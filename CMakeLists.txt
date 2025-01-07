@@ -21,7 +21,7 @@ add_library(cpp_arguments_lib STATIC
     arguments.h
 )
 
-target_compile_options(cpp_arguments_lib PRIVATE -Wall -Wextra)
+target_compile_options(cpp_arguments_lib PRIVATE -Wall)
 
 install(TARGETS cpp_arguments_lib
         ARCHIVE DESTINATION lib
